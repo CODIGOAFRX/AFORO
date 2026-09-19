@@ -1,9 +1,11 @@
 # GitHub, Cloudflare y el portfolio
 
+> **Actualización — 20 septiembre 2026:** el destino elegido es Workers + D1, sin contratar PostgreSQL externo ni contenedores en Cloudflare. La adaptación local está implementada; consulta [el estado y las condiciones de publicación](cloudflare.md). Las alternativas de PostgreSQL/Containers que aparecen debajo son antecedentes, no el plan de despliegue vigente.
+
 ## Estado
 
 El repositorio es independiente del portfolio. Cada push a `main` ejecuta las
-pruebas PostgreSQL y compila React. Solo si ambos pasos pasan, publica dos imágenes
+pruebas PostgreSQL, pruebas D1 y compila React. Solo si todos los pasos pasan, publica dos imágenes
 en GitHub Container Registry con el SHA del commit como etiqueta. No cambia el
 dominio ni despliega una versión pública por sí solo.
 

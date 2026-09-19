@@ -24,6 +24,7 @@ export type Report = {
   }[];
 };
 type Props = {
+  browserDriven?: boolean;
   report?: Report;
   counts?: Counts;
   connected: boolean;
@@ -32,7 +33,7 @@ type Props = {
 };
 const seatLabel = (id: number) =>
   `${String.fromCharCode(65 + Math.floor((id - 1) / 10))}${((id - 1) % 10) + 1}`;
-export function Experiment({ report, counts, connected, api, refresh }: Props) {
+export function Experiment({ report, counts, connected, api, refresh, browserDriven }: Props) {
   const [buyers, setBuyers] = useState(30);
   const [interval, setInterval] = useState(2);
   const [group, setGroup] = useState(1);
@@ -67,6 +68,7 @@ export function Experiment({ report, counts, connected, api, refresh }: Props) {
             Reserva tú mientras los compradores automáticos ocupan los asientos
             libres.
           </p>
+          {browserDriven && <p className="small">Mantén esta pestaña visible. La prueba se pausa al ocultarla o tras dos minutos sin interacción; vuelve a tocar la página para continuar.</p>}
         </div>
         <span className={`run-state ${running ? "running" : ""}`}>
           {running

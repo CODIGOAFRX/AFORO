@@ -24,6 +24,8 @@ type Event = {
   priceCents: number;
 };
 type Inventory = { serverTime: string; seats: Seat[] };
+type Snapshot = { inventory: Inventory; reservations: Hold[]; experiment: Report; counts: Counts };
+type Capabilities = { snapshot?: boolean; experimentDriver?: "browser" };
 const money = (cents: number) =>
   new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(
     cents / 100,
@@ -45,10 +47,11 @@ async function api<T>(path: string, body?: unknown): Promise<T> {
   });
   if (response.status === 204) return undefined as T;
   const data = await response.json();
-  if (!response.ok)
-    throw new Error(
-      data.detail || `No se pudo completar la petición (${response.status}).`,
-    );
+  if (!response.ok) {
+    const error = new Error(data.detail || `No se pudo completar la petición (${response.status}).`);
+    Object.assign(error, { status: response.status });
+    throw error;
+  }
   return data;
 }
 function App() {
@@ -67,26 +70,41 @@ function App() {
   const [now, setNow] = useState(Date.now());
   const offset = useRef(0);
   const refreshing = useRef(false);
+  const capabilities = useRef<Capabilities>({});
+  const currentRun = useRef<Report["run"]>(null);
+  const activeUntil = useRef(0);
+  const lastActivity = useRef(Date.now());
+  const retryAt = useRef(0);
   const [listMode, setListMode] = useState(false);
   async function refresh() {
-    if (refreshing.current) return;
+    if (refreshing.current || Date.now() < retryAt.current) return;
     refreshing.current = true;
     try {
-      const [inventory, reservations, experiment, totals] = await Promise.all([
-        api<Inventory>("/inventory"),
-        api<Hold[]>("/reservations"),
-        api<Report>("/experiments/latest"),
-        api<Counts>("/reservation-counts"),
-      ]);
+      const run = currentRun.current;
+      if (capabilities.current.experimentDriver === "browser" && run?.status === "RUNNING") {
+        await api(`/experiments/${run.id}/advance`, {});
+      }
+      const snapshot: Snapshot = capabilities.current.snapshot
+        ? await api<Snapshot>("/state")
+        : await Promise.all([
+            api<Inventory>("/inventory"), api<Hold[]>("/reservations"),
+            api<Report>("/experiments/latest"), api<Counts>("/reservation-counts"),
+          ]).then(([inventory, reservations, experiment, counts]) => ({ inventory, reservations, experiment, counts }));
+      const { inventory, reservations, experiment, counts: totals } = snapshot;
       setSeats(inventory.seats);
       setHolds(reservations);
       setReport(experiment);
       setCounts(totals);
+      currentRun.current = experiment.run;
+      activeUntil.current = Math.max(0, ...reservations.map(h => Date.parse(h.expiresAt)));
       offset.current = Date.parse(inventory.serverTime) - Date.now();
       setNow(Date.now() + offset.current);
       setConnected(true);
-    } catch {
+    } catch (failure) {
       setConnected(false);
+      const status = (failure as { status?: number }).status;
+      retryAt.current = Date.now() + (status === 429 ? 3600000 : 15000);
+      if (status === 429) setError((failure as Error).message);
     } finally {
       refreshing.current = false;
     }
@@ -94,14 +112,14 @@ function App() {
   async function initialize() {
     setError("");
     try {
-      await api("/session", {});
+      capabilities.current = await api<Capabilities>("/session", {}) || {};
       const info = await api<Event>("/event");
       setEvent(info);
       await refresh();
       setReady(true);
     } catch {
       setError(
-        "No podemos conectar con AFORO. Comprueba que los contenedores están arrancados y vuelve a intentar.",
+        "No podemos conectar con AFORO. Vuelve a intentarlo dentro de unos minutos.",
       );
     }
   }
@@ -110,18 +128,36 @@ function App() {
   }, []);
   useEffect(() => {
     if (!ready) return;
-    const poll = setInterval(() => {
-      void refresh();
-    }, 1000);
+    let cancelled = false;
+    let poll: ReturnType<typeof setTimeout>;
+    const schedule = async () => {
+      const engaged = Date.now() - lastActivity.current < 120000;
+      if (!document.hidden && engaged) await refresh();
+      if (cancelled) return;
+      const active = currentRun.current?.status === "RUNNING" || activeUntil.current > Date.now() + offset.current;
+      poll = setTimeout(() => void schedule(), active ? 1000 : 10000);
+    };
+    poll = setTimeout(() => void schedule(), 1000);
     const tick = setInterval(() => setNow(Date.now() + offset.current), 1000);
     const focus = () => {
-      void refresh();
+      lastActivity.current = Date.now();
+      if (!document.hidden) void refresh();
     };
+    const activity = () => { lastActivity.current = Date.now(); };
     window.addEventListener("focus", focus);
+    document.addEventListener("visibilitychange", focus);
+    window.addEventListener("pointerdown", activity);
+    window.addEventListener("keydown", activity);
+    window.addEventListener("scroll", activity, { passive: true });
     return () => {
-      clearInterval(poll);
+      cancelled = true;
+      clearTimeout(poll);
       clearInterval(tick);
       window.removeEventListener("focus", focus);
+      document.removeEventListener("visibilitychange", focus);
+      window.removeEventListener("pointerdown", activity);
+      window.removeEventListener("keydown", activity);
+      window.removeEventListener("scroll", activity);
     };
   }, [ready]);
   function toggle(id: number) {
@@ -273,6 +309,7 @@ function App() {
           {ready && (
             <>
               <Experiment
+                browserDriven={capabilities.current.experimentDriver === "browser"}
                 report={report}
                 counts={counts}
                 connected={connected}
@@ -286,7 +323,7 @@ function App() {
                       className={`connection ${connected ? "" : "offline"}`}
                     >
                       {connected
-                        ? "Conectado · actualiza cada segundo"
+                        ? "Conectado · actualización automática"
                         : "Sin conexión · reintentando"}
                     </span>
                     <button

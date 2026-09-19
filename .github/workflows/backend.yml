@@ -28,7 +28,7 @@ jobs:
       - run: npm run build
         working-directory: frontend
   containers:
-    needs: [verify, frontend]
+    needs: [verify, frontend, cloudflare]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 20
@@ -55,3 +55,16 @@ jobs:
           labels: org.opencontainers.image.source=https://github.com/CODIGOAFRX/AFORO
           cache-from: type=gha,scope=${{ matrix.component }}
           cache-to: type=gha,mode=max,scope=${{ matrix.component }}
+  cloudflare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: cloudflare/package-lock.json
+      - run: npm ci
+        working-directory: cloudflare
+      - run: npm test
+        working-directory: cloudflare

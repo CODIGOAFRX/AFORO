@@ -16,6 +16,8 @@
 
 </div>
 
+> **Cloudflare:** hay una segunda implementación para Workers + D1, probada en local en el puerto 8787. Mantiene las reglas de reserva mediante control optimista de revisiones. La versión Java/PostgreSQL sigue siendo el backend de referencia en Docker (8088). El despliegue público permanece desactivado: los límites operativos implementados no garantizan un tope de facturación del 10 % en Workers Paid. [Arquitectura, presupuesto y arranque D1](docs/cloudflare.md).
+
 ## Qué es
 
 AFORO es una demo de reservas para un concierto con 60 asientos numerados. Puedes
