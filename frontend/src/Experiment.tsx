@@ -137,9 +137,9 @@ export function Experiment({ report, counts, connected, api, refresh, browserDri
         </button>
       </div>
       <p className="small">
-        Hacen reservas reales de cinco minutos en este plano. La ejecución
-        continúa si cierras la pestaña. Detenerla no cancela las reservas ya
-        hechas.
+        Hacen reservas reales de cinco minutos en este plano.{" "}
+        {!browserDriven && "La ejecución continúa si cierras la pestaña. "}
+        Detenerla no cancela las reservas ya hechas.
       </p>
       {error && (
         <p className="message" role="alert">

@@ -27,9 +27,9 @@ que ocupan el mismo plano. Cada resultado procede del backend y queda en Postgre
 El problema central es sencillo de explicar: **dos solicitudes pueden ver libre
 el mismo asiento, pero no deben conseguir dos reservas vigentes sobre él**.
 
-> **Estado:** demo local funcional, en desarrollo. El concierto y los precios son
-> ficticios. Compra simulada y entradas QR pendientes. Todavía no hay URL pública
-> de la aplicación; el portfolio es un proyecto independiente.
+> **Estado:** demo pública funcional, en desarrollo. El concierto y los precios son
+> ficticios. Compra simulada y entradas QR pendientes. La demo pública usa D1;
+> el backend Java/PostgreSQL puede ejecutarse en local.
 
 ## Pruébalo en dos minutos
 
@@ -143,11 +143,9 @@ compose.yaml             Entorno local completo
 Cada cambio en `main` ejecuta CI. Si las comprobaciones pasan, se publican las
 imágenes del backend y frontend en GHCR, etiquetadas con el SHA del commit.
 
-La conexión a producción **todavía no está activada**. Cloudflare puede servir
-la aplicación bajo un subdominio o una ruta, pero falta configurar el destino
-Java y PostgreSQL persistente. [Plan concreto de despliegue](docs/deployment.md).
-El portfolio solo necesitará un enlace estable; no habrá que copiar la app dentro
-de su repositorio cada vez que cambie.
+La demo está publicada en Cloudflare Workers + D1 y enlazada desde el inicio del
+portfolio. Su ruta permanente es `/proyecto/aforo`; no hay que copiar la app al
+repositorio del portfolio. [Configuración y estado del despliegue](docs/deployment.md).
 
 ## Siguiente trabajo
 
