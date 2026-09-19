@@ -1,0 +1,47 @@
+name: aforo
+services:
+  postgres:
+    image: postgres:17.6-alpine
+    environment:
+      POSTGRES_DB: aforo
+      POSTGRES_USER: aforo
+      POSTGRES_PASSWORD: aforo_local
+    ports:
+      - "127.0.0.1:54330:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aforo -d aforo"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/aforo
+      DATABASE_USER: aforo
+      DATABASE_PASSWORD: aforo_local
+      AFORO_BIND_ADDRESS: 0.0.0.0
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/api/event"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 30s
+  web:
+    build: ./frontend
+    ports:
+      - "127.0.0.1:8088:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+volumes:
+  postgres_data:

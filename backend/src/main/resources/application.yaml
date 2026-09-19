@@ -1,0 +1,18 @@
+server:
+  address: ${AFORO_BIND_ADDRESS:127.0.0.1}
+  port: ${PORT:8080}
+spring:
+  application:
+    name: aforo
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:54329/aforo}
+    username: ${DATABASE_USER:aforo}
+    password: ${DATABASE_PASSWORD:aforo_local}
+    hikari:
+      maximum-pool-size: 10
+      connection-init-sql: SET lock_timeout = '5s'
+  mvc:
+    problemdetails:
+      enabled: true
+aforo:
+  secure-cookie: ${SECURE_COOKIE:false}

@@ -1,0 +1,299 @@
+openapi: 3.0.3
+info:
+  title: AFORO — primer incremento
+  version: 0.1.0
+  description: Reservas de demostración. Sin compra ni entradas reales. Caducidad de cinco minutos validada por PostgreSQL.
+servers:
+  - url: http://localhost:8080/api
+security:
+  - guestCookie: []
+paths:
+  /reservation-counts:
+    get:
+      operationId: getActiveReservationCounts
+      summary: Cuenta reservas activas propias y automáticas de la sesión
+      responses:
+        '200':
+          description: Contadores persistidos; las reservas caducadas no cuentan
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [total, yours, automated, heldSeats]
+                properties:
+                  total: {type: integer}
+                  yours: {type: integer}
+                  automated: {type: integer}
+                  heldSeats: {type: integer}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /experiments:
+    post:
+      operationId: startPacedBuyers
+      summary: Inicia llegadas espaciadas dentro del inventario de la sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [buyers, intervalSeconds, seatsPerBuyer]
+              properties:
+                buyers: {type: integer, minimum: 1, maximum: 30}
+                intervalSeconds: {type: integer, enum: [1, 2, 5]}
+                seatsPerBuyer: {type: integer, enum: [1, 2]}
+      responses:
+        '201':
+          description: Ejecución guardada
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Experiment'}
+        '400': {description: INVALID_EXPERIMENT}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '409': {description: EXPERIMENT_RUNNING}
+        '429': {description: EXPERIMENT_LIMIT; máximo cuatro globales y cinco inicios por sesión y hora}
+        '503': {description: EXPERIMENTS_DISABLED o fallo transitorio}
+  /experiments/latest:
+    get:
+      operationId: getLatestExperiment
+      summary: Recupera la última ejecución de esta sesión y sus intentos
+      responses:
+        '200':
+          description: run es null si todavía no hay ejecución
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  run:
+                    nullable: true
+                    allOf:
+                      - {$ref: '#/components/schemas/Experiment'}
+                  attempts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        buyer: {type: integer}
+                        outcome: {type: string, enum: [RESERVED, NO_AVAILABILITY, CONFLICT, ERROR]}
+                        seatIds: {type: array, items: {type: integer}}
+                        durationMs: {type: integer, format: int64, description: Tiempo interno anterior al commit externo; no es latencia HTTP}
+                        createdAt: {type: string, format: date-time}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /experiments/{id}/stop:
+    post:
+      operationId: stopOwnExperiment
+      summary: Detiene futuros intentos; conserva reservas ya confirmadas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '204': {description: Detenida o ya terminada}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '404': {description: EXPERIMENT_NOT_FOUND; inexistente o ajena}
+  /session:
+    post:
+      operationId: createOrRecoverGuest
+      security: []
+      summary: Recupera la sesión de la cookie o crea una sesión anónima con inventario propio
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+            example: {}
+      responses:
+        '200':
+          description: Sesión existente
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Guest'}
+        '201':
+          description: Sesión creada con cookie HttpOnly, SameSite=Strict, Path=/api y duración de un día
+          headers:
+            Set-Cookie:
+              schema: {type: string}
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Guest'}
+        '403': {description: Origen ajeno rechazado}
+  /event:
+    get:
+      operationId: getEvent
+      security: []
+      summary: Consulta el único concierto ficticio
+      responses:
+        '200':
+          description: Evento de demostración
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, name, venue, startsAt, priceCents]
+                properties:
+                  id: {type: string, example: nocturna}
+                  name: {type: string}
+                  venue: {type: string}
+                  startsAt: {type: string, format: date-time}
+                  priceCents: {type: integer, example: 2400, description: Céntimos de euro; valor informativo hasta implementar compra}
+  /inventory:
+    get:
+      operationId: getInventory
+      summary: Consulta los 60 asientos del ámbito de la sesión
+      responses:
+        '200':
+          description: Fotografía de disponibilidad; no garantiza que una reserva posterior se acepte
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [serverTime, seats]
+                properties:
+                  serverTime: {type: string, format: date-time}
+                  seats:
+                    type: array
+                    items:
+                      type: object
+                      required: [id, row, number, state]
+                      properties:
+                        id: {type: integer}
+                        row: {type: string, example: A}
+                        number: {type: integer, example: 1}
+                        state: {type: string, enum: [AVAILABLE, HELD]}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+  /reservations:
+    get:
+      operationId: listOwnReservations
+      summary: Recupera las últimas 30 reservas de la sesión, más recientes primero
+      responses:
+        '200':
+          description: Reservas propias, activas y caducadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items: {$ref: '#/components/schemas/Reservation'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+    post:
+      operationId: reserveSeats
+      summary: Reserva todos los asientos solicitados o ninguno
+      description: No idempotente en este incremento. No reintentar automáticamente tras un timeout.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [seatIds]
+              properties:
+                seatIds:
+                  type: array
+                  minItems: 1
+                  maxItems: 6
+                  uniqueItems: true
+                  items: {type: integer, minimum: 1, maximum: 60}
+            example: {seatIds: [1, 2]}
+      responses:
+        '201':
+          description: Reserva confirmada por el servidor
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reservation'}
+        '400':
+          description: INVALID_SEATS o JSON inválido
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '403': {description: Origen ajeno rechazado}
+        '409':
+          description: SEAT_UNAVAILABLE; no se ha reservado ningún asiento de la petición
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+        '415': {description: Se exige Content-Type application/json}
+        '503':
+          description: INVENTORY_BUSY; espera de bloqueo o fallo transitorio de acceso a datos
+          headers:
+            Retry-After:
+              schema: {type: string, example: '1'}
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+  /reservations/{id}:
+    get:
+      operationId: getReservation
+      summary: Consulta una reserva propia, incluidos sus asientos históricos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200':
+          description: Estado calculado con el reloj del servidor
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Reservation'}
+        '400': {description: Identificador inválido}
+        '401': {$ref: '#/components/responses/Unauthenticated'}
+        '404':
+          description: RESERVATION_NOT_FOUND; reserva inexistente o ajena
+          content:
+            application/problem+json:
+              schema: {$ref: '#/components/schemas/Problem'}
+components:
+  securitySchemes:
+    guestCookie:
+      type: apiKey
+      in: cookie
+      name: aforo_session
+  schemas:
+    Experiment:
+      type: object
+      properties:
+        id: {type: string, format: uuid}
+        buyers: {type: integer}
+        intervalSeconds: {type: integer}
+        seatsPerBuyer: {type: integer}
+        completed: {type: integer}
+        status: {type: string, enum: [RUNNING, COMPLETED, STOPPED, FAILED]}
+    Guest:
+      type: object
+      required: [id, demo]
+      properties:
+        id: {type: string, format: uuid, description: No es una credencial}
+        demo: {type: boolean, enum: [true]}
+    Reservation:
+      type: object
+      required: [id, expiresAt, serverTime, seatIds, state]
+      properties:
+        source: {type: string, enum: [YOU, AUTOMATED]}
+        id: {type: string, format: uuid}
+        expiresAt: {type: string, format: date-time}
+        serverTime: {type: string, format: date-time}
+        seatIds:
+          type: array
+          items: {type: integer}
+        state: {type: string, enum: [ACTIVE, EXPIRED]}
+    Problem:
+      type: object
+      properties:
+        type: {type: string}
+        title: {type: string}
+        status: {type: integer}
+        detail: {type: string}
+        instance: {type: string}
+        code: {type: string, description: Código estable en errores de negocio}
+  responses:
+    Unauthenticated:
+      description: SESSION_REQUIRED; cookie ausente, inválida o caducada
+      content:
+        application/problem+json:
+          schema: {$ref: '#/components/schemas/Problem'}
