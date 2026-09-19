@@ -13,3 +13,4 @@ docs/product-context.txt
 docs/plan.md
 *.pem
 *.key
+cloudflare/public/

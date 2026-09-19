@@ -33,7 +33,7 @@ const money = (cents: number) =>
 const label = (id: number) =>
   `${String.fromCharCode(65 + Math.floor((id - 1) / 10))}${((id - 1) % 10) + 1}`;
 async function api<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch(`/api${path}`, {
+  const response = await fetch(`${import.meta.env.BASE_URL}api${path}`, {
     credentials: "same-origin",
     cache: "no-store",
     signal: AbortSignal.timeout(10000),

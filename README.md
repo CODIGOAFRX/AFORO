@@ -16,7 +16,7 @@
 
 </div>
 
-> **Cloudflare:** hay una segunda implementación para Workers + D1, probada en local en el puerto 8787. Mantiene las reglas de reserva mediante control optimista de revisiones. La versión Java/PostgreSQL sigue siendo el backend de referencia en Docker (8088). El despliegue público permanece desactivado: los límites operativos implementados no garantizan un tope de facturación del 10 % en Workers Paid. [Arquitectura, presupuesto y arranque D1](docs/cloudflare.md).
+> **[Probar AFORO en producción](https://www.pedrogomez.dev/proyecto/aforo)** · La demo usa Workers + D1 y control optimista de revisiones. Java/PostgreSQL sigue siendo el backend de referencia en Docker (8088). AFORO tiene despliegue independiente del portfolio. [Arquitectura, presupuesto y arranque D1](docs/cloudflare.md).
 
 ## Qué es
 

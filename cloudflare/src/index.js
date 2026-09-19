@@ -22,13 +22,19 @@ export async function admit(db, session = false) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
+    const prefix = '/proyecto/aforo';
+    if ([prefix, prefix + '/'].includes(url.pathname)) {
+      url.pathname = prefix + '/index.html';
+      return env.ASSETS.fetch(new Request(url, request));
+    }
+    const apiPath = url.pathname.startsWith(prefix + '/api/') ? url.pathname.slice(prefix.length) : url.pathname;
+    if (!apiPath.startsWith('/api/')) return env.ASSETS.fetch(request);
     try {
       if (env.DEMO_ENABLED !== 'true') throw new Problem(503, 'Demo pública pendiente de activar.');
-      const path = url.pathname.slice(4);
+      const path = apiPath.slice(4);
       if (!['GET','POST'].includes(request.method)) throw new Problem(405, 'Método no permitido.');
       const origin = request.headers.get('Origin');
-      if (request.method === 'POST' && ((origin && origin !== url.origin) || request.headers.get('Sec-Fetch-Site') === 'cross-site')) throw new Problem(403, 'Origen no permitido.');
+      if (request.method === 'POST' && ((origin && origin !== url.origin && origin !== env.PUBLIC_ORIGIN) || request.headers.get('Sec-Fetch-Site') === 'cross-site')) throw new Problem(403, 'Origen no permitido.');
       if (Number(request.headers.get('Content-Length') || 0) > 2048) throw new Problem(413, 'Petición demasiado grande.');
       const token = /(?:^|;\s*)aforo_session=([A-Za-z0-9_-]{43})(?:;|$)/.exec(request.headers.get('Cookie') || '')?.[1];
       const hash = token ? await digest(token) : null;
@@ -47,7 +53,8 @@ export default {
           env.DB.prepare("DELETE FROM budget WHERE day < date('now', '-2 days')"),
           env.DB.prepare('INSERT INTO room(token_hash,data,expires_at) VALUES (?,?,unixepoch()+86400)').bind(await digest(fresh), JSON.stringify(emptyRoom()))
         ]);
-        return json({ snapshot: true, experimentDriver: 'browser' }, 200, { 'Set-Cookie': `aforo_session=${fresh}; HttpOnly; SameSite=Strict; Path=/api; Max-Age=86400${url.protocol === 'https:' ? '; Secure' : ''}` });
+        const cookiePath = url.pathname.startsWith(prefix) ? prefix + '/api' : '/api';
+        return json({ snapshot: true, experimentDriver: 'browser' }, 200, { 'Set-Cookie': `aforo_session=${fresh}; HttpOnly; SameSite=Strict; Path=${cookiePath}; Max-Age=86400${url.protocol === 'https:' ? '; Secure' : ''}` });
       }
       if (!hash) throw new Problem(401, 'Inicia una sesión.');
       await admit(env.DB);

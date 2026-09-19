@@ -2,7 +2,7 @@
 
 ## Estado
 
-Adaptación implementada y probada **en local**. No hay despliegue público, nueva base remota ni conexión de despliegue automático activa. `DEMO_ENABLED=false`, sin rutas y sin URL workers.dev. El identificador D1 del fichero de configuración es un marcador local.
+Demo publicada en **https://www.pedrogomez.dev/proyecto/aforo**. El portfolio está servido por Vercel, aunque el dominio está en Cloudflare. Dos rewrites de Vercel envían exclusivamente `/proyecto/aforo` y sus descendientes al Worker `aforo.pedrojgomezperez.workers.dev`. El Worker sirve React y consulta su base independiente `aforo-db`; el resto del portfolio conserva su despliegue.
 
 El propietario exige cero coste adicional y como máximo el 10 % de sus cuotas de Workers Paid. La admisión de la aplicación limita trabajo aceptado, pero **no impone un techo de facturación**: Workers contabiliza también las peticiones rechazadas y D1 contabiliza la consulta de admisión. No activar públicamente bajo la afirmación de que este código garantiza ese 10 %.
 
@@ -19,7 +19,7 @@ Cloudflare publica 10 millones de peticiones y 30 millones de ms de CPU incluido
 
 Con 31 días se admiten como máximo 46.500 operaciones de API, el 0,465 % de la bolsa mensual de peticiones de Workers Paid. **Esto no incluye tráfico rechazado, peticiones sin sesión, archivos inexistentes ni otras aplicaciones.** No es una estimación garantizada de consumo D1: cada operación puede ejecutar varias sentencias. La consulta de presupuesto también consume D1. No se confunde una admisión con una fila leída o escrita.
 
-Para publicar respetando un tope absoluto falta un mecanismo de corte previo a la facturación que se pueda verificar en el plan de la cuenta. No existe aquí ninguna automatización que lo sustituya ni se ha activado un plan adicional.
+No existe aquí un corte de facturación previo al Worker. El propietario ha pedido continuar con la publicación tras explicar esta limitación. No se ha activado un plan adicional ni contratado otra base de datos. El presupuesto operativo reduce el consumo normal, pero no garantiza un máximo absoluto frente a tráfico ilimitado. El panel de Cloudflare mostraba 0 USD de sobreconsumo de la cuenta al publicar.
 
 ## Consistencia
 
@@ -33,7 +33,7 @@ En D1, la pestaña visible envía `POST /api/experiments/{id}/advance`. El servi
 
 ## Desarrollo local
 
-Desde la raíz, compilar `frontend` con `npm ci` y `npm run build`. Dentro de `cloudflare`:
+Desde la raíz, instalar frontend con `npm ci --prefix frontend` y ejecutar `node cloudflare/build.mjs`. Dentro de `cloudflare`:
 
 ```sh
 npm ci
@@ -42,6 +42,6 @@ npm run migrate:local
 npm run dev -- --var DEMO_ENABLED:true
 ```
 
-Abrir http://localhost:8787. No se conecta a una base remota. Docker y Java siguen disponibles en http://localhost:8088.
+Abrir http://localhost:8787/proyecto/aforo. No se conecta a una base remota. Docker y Java siguen disponibles en http://localhost:8088.
 
 Las pruebas usan Miniflare 4 con las dependencias sharp y undici actualizadas mediante overrides (la API de Miniflare 5 cambia); las pruebas de CAS ejecutan SQL sobre el emulador D1, no un mock. Verifican conflicto de asiento, escrituras disjuntas, aislamiento y admisión concurrente en el límite del presupuesto.
