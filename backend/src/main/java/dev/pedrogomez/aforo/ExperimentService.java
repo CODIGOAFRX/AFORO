@@ -24,7 +24,7 @@ public class ExperimentService {
     public Run start(UUID session, Config config) {
         if (!enabled) throw new ApiFailure(SERVICE_UNAVAILABLE, "EXPERIMENTS_DISABLED", "Las pruebas automáticas están desactivadas.");
         if (config.buyers < 1 || config.buyers > 30 || !Set.of(1, 2, 5).contains(config.intervalSeconds)
-                || !Set.of(1, 2).contains(config.seatsPerBuyer)) {
+                || !Set.of(0, 1, 2).contains(config.seatsPerBuyer)) {
             throw new ApiFailure(BAD_REQUEST, "INVALID_EXPERIMENT", "Elige de 1 a 30 compradores, uno o dos asientos y un intervalo de 1, 2 o 5 segundos.");
         }
         // Serialize admission across application instances; capacity is a database decision.

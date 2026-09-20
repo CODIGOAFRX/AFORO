@@ -20,8 +20,8 @@ export function reserve(room, seatIds, now, source = 'YOU') {
 export function start(room, config, now) {
   const { buyers, intervalSeconds, seatsPerBuyer } = config;
   if (!Number.isInteger(buyers) || buyers < 1 || buyers > 30 ||
-      ![1,2,5].includes(intervalSeconds) || ![1,2].includes(seatsPerBuyer)) {
-    throw new Problem(400, 'Usa de 1 a 30 compradores, intervalos de 1, 2 o 5 segundos y grupos de 1 o 2.');
+      ![1,2,5].includes(intervalSeconds) || ![0,1,2].includes(seatsPerBuyer)) {
+    throw new Problem(400, 'Usa de 1 a 30 compradores, intervalos de 1, 2 o 5 segundos y grupos aleatorios, de uno o de dos.');
   }
   if (room.run?.status === 'RUNNING' && now - room.run.startedAt < 300000) throw new Problem(409, 'Ya hay una prueba en curso.');
   if (room.runs >= 3) throw new Problem(429, 'Límite de tres pruebas por sesión de demostración.');
@@ -30,18 +30,20 @@ export function start(room, config, now) {
   room.attempts = [];
   return { ...room.run };
 }
-export function advance(room, now) {
+export function advance(room, now, random = Math.random) {
   const run = room.run;
   if (!run || run.status !== 'RUNNING') return false;
   if (now - run.startedAt >= 300000) { run.status = 'STOPPED'; return true; }
   if (now < run.nextAt) return false;
   const occupied = new Set(room.holds.filter(h => h.until > now).flatMap(h => h.seatIds));
-  let ids = [];
+  const size = run.seatsPerBuyer === 0 ? 1 + Math.floor(random() * 3) : run.seatsPerBuyer;
+  const candidates = [];
   for (let id = 1; id <= 60; id++) {
-    if (occupied.has(id)) continue;
-    if (run.seatsPerBuyer === 1) { ids = [id]; break; }
-    if (id % 10 !== 0 && !occupied.has(id+1)) { ids = [id,id+1]; break; }
+    if ((id - 1) % 10 + size > 10) continue;
+    const group = Array.from({length: size}, (_, offset) => id + offset);
+    if (group.every(seat => !occupied.has(seat))) candidates.push(group);
   }
+  const ids = candidates.length ? candidates[Math.floor(random() * candidates.length)] : [];
   if (ids.length) reserve(room, ids, now, 'AUTOMATED');
   run.completed++;
   room.attempts.unshift({ buyer: run.completed, outcome: ids.length ? 'RESERVED' : 'NO_AVAILABILITY', seatIds: ids, durationMs: 0, createdAt: iso(now) });

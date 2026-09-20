@@ -33,11 +33,24 @@ public class ExperimentRunner {
         long start = System.nanoTime();
         var available = inventory.inventory(work.session).seats().stream().filter(s -> s.state().equals("AVAILABLE")).toList();
         List<Integer> choice = List.of();
+        if (work.seats == 0) {
+            var random = java.util.concurrent.ThreadLocalRandom.current();
+            int size = random.nextInt(1, 4);
+            List<List<Integer>> candidates = new ArrayList<>();
+            for (var seat : available) {
+                if (seat.number() + size - 1 > 10) continue;
+                List<Integer> group = new ArrayList<>();
+                for (int offset = 0; offset < size; offset++) group.add(seat.id() + offset);
+                if (group.stream().allMatch(id -> available.stream().anyMatch(s -> s.id() == id))) candidates.add(group);
+            }
+            if (!candidates.isEmpty()) choice = candidates.get(random.nextInt(candidates.size()));
+        } else {
         for (var seat : available) {
             if (work.seats == 1) { choice = List.of(seat.id()); break; }
             if (available.stream().anyMatch(s -> s.row().equals(seat.row()) && s.number() == seat.number() + 1)) {
                 choice = List.of(seat.id(), seat.id() + 1); break;
             }
+        }
         }
         // A savepoint lets business conflicts be recorded without rolling back the experiment.
         // Actual reservation execution is delegated to a NESTED transactional boundary below.

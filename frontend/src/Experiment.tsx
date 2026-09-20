@@ -36,7 +36,7 @@ const seatLabel = (id: number) =>
 export function Experiment({ report, counts, connected, api, refresh, browserDriven }: Props) {
   const [buyers, setBuyers] = useState(30);
   const [interval, setInterval] = useState(2);
-  const [group, setGroup] = useState(1);
+  const [group, setGroup] = useState(0);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const running = report?.run?.status === "RUNNING";
@@ -113,6 +113,7 @@ export function Experiment({ report, counts, connected, api, refresh, browserDri
             disabled={running || busy}
             onChange={(e) => setGroup(Number(e.target.value))}
           >
+            <option value={0}>Aleatorio: de 1 a 3 juntos</option>
             <option value={1}>Un asiento</option>
             <option value={2}>Dos juntos</option>
           </select>
