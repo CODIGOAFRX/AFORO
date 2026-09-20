@@ -1,0 +1,555 @@
+.backend-guide {
+  padding: 100px 50px 0;
+  border-top: 1px solid #d9dbd4;
+  margin-top: 80px;
+  --guide-green: #526347;
+  --guide-line: #d4d9cc;
+}
+.guide-intro {
+  max-width: 950px;
+}
+.backend-guide h2 {
+  font:
+    normal clamp(48px, 6.5vw, 86px)/1.04 Georgia,
+    serif;
+  letter-spacing: -3px;
+  margin: 24px 0 30px;
+}
+.backend-guide h3 {
+  font:
+    normal clamp(35px, 4vw, 53px)/1.1 Georgia,
+    serif;
+  letter-spacing: -1.5px;
+  margin: 16px 0 24px;
+}
+.backend-guide em {
+  color: var(--guide-green);
+  font-weight: normal;
+}
+.backend-guide p {
+  font-size: 15px;
+  line-height: 1.8;
+  color: #62665d;
+}
+.backend-guide .guide-lead {
+  font-size: 20px;
+  max-width: 710px;
+  line-height: 1.65;
+}
+.backend-guide .guide-muted {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #747a6d;
+}
+.guide-stack {
+  display: flex;
+  gap: 40px;
+  border-top: 1px solid var(--guide-line);
+  border-bottom: 1px solid var(--guide-line);
+  padding: 25px 0;
+  margin: 30px 0 18px;
+}
+.guide-stack span {
+  font-size: 14px;
+  line-height: 1.8;
+}
+.guide-stack b {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--guide-green);
+}
+.guide-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 30px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--guide-line);
+  margin-top: 40px;
+  font-size: 12px;
+}
+.guide-nav a {
+  padding: 8px 0;
+  border-bottom: 1px solid transparent;
+}
+.guide-nav a:hover {
+  border-color: var(--guide-green);
+}
+.guide-chapter {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 60px;
+  align-items: center;
+  padding: 95px 0;
+  border-bottom: 1px solid var(--guide-line);
+  scroll-margin-top: 30px;
+}
+.guide-copy {
+  min-width: 0;
+}
+.guide-panel {
+  background: #f0f2e9;
+  border: 1px solid var(--guide-line);
+  padding: 28px;
+  min-width: 0;
+  border-radius: 3px;
+}
+.guide-panel-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font: 10px/1.6 monospace;
+  letter-spacing: 1px;
+  color: #65735b;
+  margin-bottom: 28px;
+}
+.guide-matrix {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 6px;
+}
+.guide-matrix button {
+  padding: 0;
+  aspect-ratio: 1;
+  border: 1px solid #bbc4b0;
+  border-radius: 5px;
+  background: #fafbf7;
+  color: #697061;
+  font-size: 10px;
+  transition:
+    background 0.25s,
+    transform 0.25s,
+    box-shadow 0.25s;
+}
+.guide-matrix button:hover {
+  transform: translateY(-3px);
+}
+.guide-matrix .occupied {
+  background: #657751;
+  color: white;
+  animation: guide-seat 0.35s ease-out;
+}
+.guide-matrix .candidate {
+  box-shadow: 0 0 0 2px #292f25;
+  transform: translateY(-3px);
+}
+.guide-matrix .invalid {
+  box-shadow: 0 0 0 2px #a36048;
+}
+.guide-formula {
+  display: grid;
+  gap: 12px;
+  padding: 24px 0;
+}
+.guide-formula > span {
+  font:
+    24px Georgia,
+    serif;
+}
+.guide-formula code {
+  font: 12px/1.9 monospace;
+  color: #59634e;
+}
+.guide-formula small {
+  font-size: 11px;
+  color: #747a6d;
+}
+.guide-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+}
+.backend-guide
+  button:not(.guide-matrix button):not(.guide-steps button):not(
+    .guide-engine button
+  ) {
+  padding: 11px 14px;
+  border: 1px solid #b9c2ac;
+  background: transparent;
+  border-radius: 2px;
+  font-size: 12px;
+}
+.backend-guide button.guide-dark {
+  background: #30392b !important;
+  color: #fff;
+  border-color: #30392b !important;
+}
+.backend-guide button:disabled {
+  opacity: 0.4;
+}
+.guide-controls label {
+  font-size: 11px;
+  display: grid;
+  gap: 6px;
+}
+.guide-controls select {
+  font: inherit;
+  padding: 9px 12px;
+  border: 1px solid #b9c2ac;
+  background: #fafbf7;
+  border-radius: 2px;
+}
+.backend-guide .guide-feedback {
+  font-size: 13px;
+  min-height: 48px;
+  color: #3d4b33;
+}
+.guide-source {
+  display: inline-block;
+  font-size: 12px;
+  border-bottom: 1px solid #65735b;
+  padding-bottom: 5px;
+  margin: 15px 0;
+}
+.backend-guide details {
+  border-top: 1px solid var(--guide-line);
+  margin-top: 24px;
+  padding: 20px 0 0;
+}
+.backend-guide summary {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.backend-guide summary:focus-visible {
+  outline: 2px solid var(--guide-green);
+  outline-offset: 5px;
+}
+.guide-flow {
+  padding: 80px 0;
+  border-bottom: 1px solid var(--guide-line);
+  scroll-margin-top: 30px;
+}
+.guide-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: var(--guide-line);
+  border: 1px solid var(--guide-line);
+  margin-top: 35px;
+}
+.guide-steps button {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+  text-align: left;
+  border: 0;
+  background: #fafaf7;
+  padding: 22px 18px;
+  font-size: 13px;
+  transition: background 0.25s;
+}
+.guide-steps button[aria-pressed="true"] {
+  background: #30392b;
+  color: white;
+}
+.guide-steps button span:first-child {
+  font: 12px monospace;
+  opacity: 0.6;
+}
+.guide-flow-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  padding: 35px;
+  background: #f0f2e9;
+  animation: guide-in 0.35s ease-out;
+}
+.backend-guide h4 {
+  font:
+    normal 25px/1.25 Georgia,
+    serif;
+  margin: 0 0 12px;
+}
+.backend-guide pre {
+  font: 12px/1.8 monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  padding: 22px;
+  background: #252d21;
+  color: #e2e9d9;
+  border-radius: 3px;
+  margin: 20px 0 0;
+  max-width: 100%;
+}
+.guide-flow-detail pre {
+  margin: 0;
+  align-self: center;
+}
+.guide-engine {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.guide-engine button {
+  padding: 12px;
+  border: 1px solid var(--guide-line);
+  background: transparent;
+  font-size: 12px;
+  border-radius: 2px;
+}
+.guide-engine button[aria-pressed="true"] {
+  background: #30392b;
+  color: #fff;
+}
+.guide-race-lanes {
+  display: grid;
+  grid-template-columns: 1fr 100px 1fr;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.guide-race-lanes b {
+  display: block;
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+.guide-race-lanes span {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #626d56;
+}
+.guide-race-seat {
+  padding: 18px 5px;
+  border: 1px solid #a5b297;
+  border-radius: 12px;
+  font:
+    34px Georgia,
+    serif;
+  transition:
+    background 0.5s,
+    color 0.5s,
+    transform 0.5s;
+}
+.guide-race-seat.taken {
+  background: #657751;
+  color: white;
+  transform: translateY(-5px);
+}
+.guide-race-seat small {
+  display: block;
+  font: 8px monospace;
+  margin-top: 10px;
+  letter-spacing: 0.5px;
+}
+.guide-race-story {
+  margin: 30px 0;
+  min-height: 135px;
+}
+.guide-race-story h4 {
+  font-size: 23px;
+}
+.guide-race-story p {
+  font-size: 13px;
+}
+.guide-clock {
+  padding: 20px 0 30px;
+}
+.guide-clock > span {
+  font:
+    72px Georgia,
+    serif;
+  letter-spacing: -3px;
+}
+.guide-clock-track {
+  height: 5px;
+  background: #d4dccc;
+  margin: 24px 0;
+  overflow: hidden;
+}
+.guide-clock-track i {
+  display: block;
+  width: 3%;
+  height: 100%;
+  background: #526347;
+  transition: width 1s ease;
+}
+.guide-clock.expired .guide-clock-track i {
+  width: 100%;
+}
+.guide-clock b {
+  font-size: 13px;
+  font-weight: normal;
+}
+.guide-facts {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 35px;
+  padding: 55px 0;
+  border-bottom: 1px solid var(--guide-line);
+}
+.guide-facts article > span {
+  font: 10px monospace;
+  letter-spacing: 1px;
+  color: #65735b;
+}
+.guide-facts h4 {
+  margin-top: 20px;
+}
+.guide-facts p {
+  font-size: 13px;
+}
+.guide-interview {
+  padding: 90px 0 50px;
+  max-width: 950px;
+  scroll-margin-top: 30px;
+}
+.guide-interview details {
+  margin: 0;
+  padding: 22px 0;
+}
+.guide-interview summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  font-size: 17px;
+  list-style: none;
+}
+.guide-interview summary::-webkit-details-marker {
+  display: none;
+}
+.guide-interview summary span {
+  font-size: 22px;
+  transition: transform 0.2s;
+}
+.guide-interview details[open] summary span {
+  transform: rotate(45deg);
+}
+.guide-interview details p {
+  max-width: 790px;
+  padding-right: 20px;
+  animation: guide-in 0.3s ease-out;
+}
+.guide-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+.guide-end {
+  display: flex;
+  justify-content: space-between;
+  gap: 30px;
+  align-items: center;
+  border-top: 1px solid var(--guide-line);
+  padding: 45px 0 65px;
+}
+.guide-end span {
+  font:
+    25px/1.5 Georgia,
+    serif;
+}
+.guide-end b {
+  font-weight: normal;
+  color: var(--guide-green);
+}
+.guide-end a {
+  font-size: 13px;
+  border-bottom: 1px solid;
+  padding: 8px 0;
+}
+@keyframes guide-seat {
+  from {
+    transform: scale(0.85);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes guide-in {
+  from {
+    opacity: 0.4;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (max-width: 1000px) {
+  .guide-chapter {
+    gap: 30px;
+    grid-template-columns: 1fr 1.2fr;
+  }
+  .guide-panel {
+    padding: 20px;
+  }
+  .guide-steps button {
+    padding: 18px 12px;
+    gap: 7px;
+  }
+  .guide-race-lanes {
+    grid-template-columns: 1fr 80px 1fr;
+    gap: 8px;
+  }
+}
+@media (max-width: 760px) {
+  .backend-guide {
+    padding: 65px 22px 0;
+    margin-top: 35px;
+  }
+  .backend-guide h2 {
+    letter-spacing: -2px;
+  }
+  .guide-stack {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .guide-chapter {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    padding: 55px 0;
+  }
+  .guide-nav {
+    gap: 5px 18px;
+  }
+  .guide-flow {
+    padding: 55px 0;
+  }
+  .guide-steps {
+    grid-template-columns: 1fr 1fr;
+  }
+  .guide-flow-detail {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 23px;
+  }
+  .guide-facts {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .guide-interview {
+    padding-top: 55px;
+  }
+  .guide-end {
+    align-items: start;
+    flex-direction: column;
+  }
+  .guide-matrix {
+    gap: 5px;
+  }
+  .guide-matrix button {
+    font-size: 9px;
+  }
+  .guide-panel {
+    padding: 18px;
+  }
+  .guide-race-story {
+    min-height: 155px;
+  }
+  .guide-panel-heading {
+    font-size: 9px;
+  }
+  .guide-intro .guide-lead {
+    font-size: 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .backend-guide * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

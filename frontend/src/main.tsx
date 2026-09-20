@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import "./style.css";
 import { Experiment, type Report, type Counts } from "./Experiment";
 import { useReveal } from "./useReveal";
+import { BackendGuide } from "./BackendGuide";
 
 type Seat = {
   id: number;
@@ -207,8 +208,8 @@ function App() {
         </a>
         <nav aria-label="Principal">
           <a href="#asientos">Elige tu lugar</a>
-          <a href="#proyecto">
-            El proyecto <span>↗</span>
+          <a href="#documentacion">
+            Cómo funciona <span>↗</span>
           </a>
         </nav>
         <span className="edition">DEMO / 001</span>
@@ -549,7 +550,7 @@ function App() {
                 </p>
                 <a
                   className="underlined"
-                  href="/#asientos"
+                  href={`${import.meta.env.BASE_URL}#asientos`}
                   target="_blank"
                   rel="noopener"
                 >
@@ -562,8 +563,8 @@ function App() {
               <div>
                 <h3>Lanza compradores automáticos</h3>
                 <p>
-                  Elige cuántos entran, el intervalo y si necesitan uno o dos
-                  asientos juntos. Su actividad aparece en la lista y sus
+                  Elige cuántos entran, el intervalo y el tamaño del grupo:
+                  aleatorio de uno a tres, individual o pareja. Su actividad aparece en la lista y sus
                   reservas ocupan este mismo plano.
                 </p>
               </div>
@@ -582,6 +583,7 @@ function App() {
             </article>
           </div>
         </section>
+        <BackendGuide />
       </main>
       <footer>
         <a className="brand" href="#">
