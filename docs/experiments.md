@@ -7,12 +7,15 @@ ejecución, contadores y reservas propias. Un comprador automático no es una pe
 ## Ejecución
 
 POST `/api/experiments` recibe `buyers` (1–30), `intervalSeconds` (1, 2, 5) y
-`seatsPerBuyer` (1 o 2). Se guarda una ejecución y el scheduler del backend procesa
+`seatsPerBuyer` (0: aleatorio de 1 a 3, 1: individual, 2: pareja). Se guarda una ejecución y el scheduler del backend Java procesa
 un intento cuando llega su fecha. El ritmo es un intervalo mínimo tras completar
 el intento anterior, no una garantía de temporización exacta.
 
-Selecciona el primer asiento libre por orden de fila/número o la primera pareja
-contigua de la misma fila. Llama a la misma lógica transaccional de reservas que
+El modo predeterminado elige un tamaño de grupo de 1 a 3 al azar y una posición
+al azar entre todos los grupos libres contiguos de ese tamaño dentro de una fila.
+Si no cabe ese grupo, registra falta de disponibilidad; no reduce su tamaño.
+Los modos de tamaño fijo en Java mantienen el orden de fila; en D1 también
+eligen una posición aleatoria. Llama a la misma lógica transaccional de reservas que
 la API del visitante. Si alguien ocupa el asiento entre consulta y reserva, el
 resultado es CONFLICT; no reintenta ni inventa un éxito. Si no encuentra un grupo,
 registra NO_AVAILABILITY. Fallos inesperados se registran como ERROR y detienen

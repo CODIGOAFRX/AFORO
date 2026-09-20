@@ -40,7 +40,7 @@ paths:
               properties:
                 buyers: {type: integer, minimum: 1, maximum: 30}
                 intervalSeconds: {type: integer, enum: [1, 2, 5]}
-                seatsPerBuyer: {type: integer, enum: [1, 2]}
+                seatsPerBuyer: {type: integer, enum: [0, 1, 2], description: '0 elige grupos aleatorios de 1 a 3; 1 y 2 fijan el tamaño.'}
       responses:
         '201':
           description: Ejecución guardada

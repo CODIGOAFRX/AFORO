@@ -29,6 +29,10 @@ Las sesiones se autentican por cookie HttpOnly, SameSite=Strict, Secure en HTTPS
 
 ## Compradores automáticos
 
+Por defecto cada comprador elige aleatoriamente un tamaño de 1 a 3 asientos y
+una posición entre los grupos disponibles del tamaño elegido. No cruza filas.
+También hay modos de tamaño fijo individual o pareja, con posición aleatoria.
+
 En D1, la pestaña visible envía `POST /api/experiments/{id}/advance`. El servidor elige asientos, comprueba el intervalo y confirma el estado con la misma revisión que la reserva. Dos pestañas no duplican compradores. Al ocultar todas las pestañas se pausa; la prueba se detiene si han pasado cinco minutos desde su inicio. No se usan cron, colas ni procesos de pago. Java conserva su ejecutor en servidor.
 
 ## Desarrollo local
