@@ -519,7 +519,7 @@ export function BackendGuide() {
           <h4>Una demo acotada.</h4>
           <p>
             D1 admite hasta 20 sesiones nuevas y 1.500 operaciones al día. Cada
-            sesión permite diez reservas manuales y tres pruebas. Los datos
+            sesión permite diez reservas manuales y cinco pruebas renovables cada cinco horas desde la primera. Los datos
             caducados se limpian al crear nuevas sesiones.
           </p>
           <p>

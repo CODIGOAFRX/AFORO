@@ -3,6 +3,11 @@ export class Problem extends Error {
 }
 export const emptyRoom = () => ({ holds: [], run: null, attempts: [], runs: 0, manual: 0 });
 const iso = (now) => new Date(now).toISOString();
+const RUN_WINDOW_MS = 5 * 60 * 60 * 1000;
+export function experimentQuota(room, now) {
+  const active = Number.isFinite(room.runsWindowStart) && now < room.runsWindowStart + RUN_WINDOW_MS;
+  return { remaining: active ? Math.max(0, 5 - room.runs) : 5, resetsAt: active ? iso(room.runsWindowStart + RUN_WINDOW_MS) : null };
+}
 export function reserve(room, seatIds, now, source = 'YOU') {
   if (!Array.isArray(seatIds) || seatIds.length < 1 || seatIds.length > 6 ||
       new Set(seatIds).size !== seatIds.length ||
@@ -24,7 +29,10 @@ export function start(room, config, now) {
     throw new Problem(400, 'Usa de 1 a 30 compradores, intervalos de 1, 2 o 5 segundos y grupos aleatorios, de uno o de dos.');
   }
   if (room.run?.status === 'RUNNING' && now - room.run.startedAt < 300000) throw new Problem(409, 'Ya hay una prueba en curso.');
-  if (room.runs >= 3) throw new Problem(429, 'Límite de tres pruebas por sesión de demostración.');
+  const quota = experimentQuota(room, now);
+  if (!quota.remaining) throw new Problem(429, `Has usado las cinco pruebas. Podrás volver a probar a partir de ${quota.resetsAt}.`);
+  if (!quota.resetsAt) { room.runs = 0; room.runsWindowStart = now; }
+  room.holds = room.holds.filter(h => h.source === 'YOU' || h.until > now);
   room.runs++;
   room.run = { id: crypto.randomUUID(), buyers, intervalSeconds, seatsPerBuyer, completed: 0, status: 'RUNNING', startedAt: now, nextAt: now };
   room.attempts = [];
@@ -64,7 +72,7 @@ export function snapshot(room, now) {
   return {
     inventory: { serverTime: iso(now), seats: Array.from({ length: 60 }, (_, i) => ({ id: i+1, row: String.fromCharCode(65+Math.floor(i/10)), number: i%10+1, state: occupied.has(i+1) ? 'HELD' : 'AVAILABLE' })) },
     reservations: room.holds.filter(h => h.source === 'YOU').slice(-30).reverse().map(h => holdView(h, now)),
-    experiment: { run: room.run, attempts: room.attempts },
+    experiment: { run: room.run, attempts: room.attempts, quota: experimentQuota(room, now) },
     counts: { total: active.length, yours: active.filter(h => h.source === 'YOU').length, automated: active.filter(h => h.source === 'AUTOMATED').length, heldSeats: occupied.size }
   };
 }

@@ -11,7 +11,7 @@ Cloudflare publica 10 millones de peticiones y 30 millones de ms de CPU incluido
 ## Presupuesto operativo de la demo
 
 - Máximo 1.500 admisiones de API al día UTC; 20 sesiones nuevas al día.
-- Por sesión de 24 horas: 10 reservas manuales y 3 pruebas de hasta 30 compradores.
+- Por sesión de 24 horas: 10 reservas manuales y 5 pruebas de hasta 30 compradores. Las cinco pruebas se renuevan cinco horas después de iniciar la primera, sin abrir otra ventana. Las sesiones anteriores sin ventana de cuota empiezan con cinco pruebas disponibles tras esta actualización.
 - Una sola sala por sesión, hasta 64 KiB de JSON, borrado de sesiones caducadas al crear otra.
 - Una respuesta `/api/state` contiene plano, reservas propias, prueba y contadores.
 - Consultas cada segundo con actividad de reservas; cada 10 segundos en reposo. Se pausan en pestañas ocultas y después de dos minutos sin interacción. Un 429 suspende las consultas durante una hora; otros errores esperan 15 segundos.

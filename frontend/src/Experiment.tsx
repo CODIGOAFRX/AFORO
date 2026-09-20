@@ -7,6 +7,7 @@ export type Counts = {
   heldSeats: number;
 };
 export type Report = {
+  quota?: { remaining: number; resetsAt: string | null };
   run: {
     id: string;
     buyers: number;
@@ -138,6 +139,7 @@ export function Experiment({ report, counts, connected, api, refresh, browserDri
         </button>
       </div>
       <p className="small">
+        {report?.quota && <span>Disponibles: {report.quota.remaining} de 5 pruebas. Se recuperan cinco horas después de iniciar la primera.{report.quota.resetsAt && ` Próxima renovación: ${new Date(report.quota.resetsAt).toLocaleString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}.`}<br /></span>}
         Hacen reservas reales de cinco minutos en este plano.{" "}
         {!browserDriven && "La ejecución continúa si cierras la pestaña. "}
         Detenerla no cancela las reservas ya hechas.

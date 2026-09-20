@@ -2,6 +2,26 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { emptyRoom, reserve, start, advance, stop, snapshot } from '../src/domain.js';
 
+test('five experiments renew exactly five hours after the first, including legacy rooms', () => {
+  const room = emptyRoom();
+  room.runs = 3; // Existing sessions receive the new allowance without changing cookies.
+  const config = { buyers: 1, intervalSeconds: 1, seatsPerBuyer: 1 };
+  const first = 1000;
+  const reset = first + 5 * 60 * 60 * 1000;
+  for (let i = 0; i < 5; i++) {
+    start(room, config, first + i);
+    stop(room, room.run.id);
+  }
+  assert.equal(snapshot(room, reset - 1).experiment.quota.remaining, 0);
+  assert.throws(() => start(room, config, reset - 1), { status: 429 });
+  assert.equal(room.runs, 5);
+  assert.equal(snapshot(room, reset).experiment.quota.remaining, 5);
+  start(room, config, reset);
+  assert.equal(room.runs, 1);
+  assert.equal(snapshot(room, reset).experiment.quota.remaining, 4);
+  assert.equal(room.runsWindowStart, reset);
+});
+
 test('overlap rejects the whole selection and expiry releases seats', () => {
   const room = emptyRoom();
   reserve(room, [1,2], 1000);
